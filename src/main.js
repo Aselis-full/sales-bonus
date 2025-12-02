@@ -47,6 +47,9 @@ function analyzeSalesData(data, options) {
     const productIndex = Object.fromEntries(data.products.map(product=>[product.sku, product]));
     // Расчет выручки и прибыли для каждого продавца
     data.purchase_records.forEach(record => {
+        if (record.length === 0){
+            throw new Error("Пустой массив");
+        }
         const seller = sellerIndex[record.seller_id];
         seller.sales_count += 1;
         seller.revenue += record.total_amount;
