@@ -38,8 +38,8 @@ function analyzeSalesData(data, options) {
         name: `${seller.first_name} ${seller.last_name}`,
         revenue: 0,
         profit: 0,
-        sales_count: 0,
-        products_sold: {}
+        salesCount: 0,
+        productsSold: {}
     }));
 
     // Индексация продавцов и товаров для быстрого доступа
@@ -51,7 +51,7 @@ function analyzeSalesData(data, options) {
             throw new Error("Пустой массив");
         }
         const seller = sellerIndex[record.seller_id];
-        seller.sales_count += 1;
+        seller.salesCount += 1;
         seller.revenue += record.total_amount;
         record.items.forEach(item => {
             const product = productIndex[item.sku];
@@ -59,10 +59,10 @@ function analyzeSalesData(data, options) {
             const revenue = calculateRevenue(item, productIndex[item.sku]);
             const profit = revenue - cost;
             seller.profit += profit;
-            if (!seller.products_sold[item.sku]) {
-                seller.products_sold[item.sku] = 0;
+            if (!seller.productsSold[item.sku]) {
+                seller.productsSold[item.sku] = 0;
             }
-            seller.products_sold[item.sku] += item.quantity;
+            seller.productsSold[item.sku] += item.quantity;
         });
     });
 
@@ -72,19 +72,22 @@ function analyzeSalesData(data, options) {
     // Назначение премий на основе ранжирования
     sellerStats.forEach((seller, index) => {
         seller.bonus = calculateBonus(index, sellerStats.length, seller);
-        seller.top_products = Object.entries(seller.products_sold).map(product => ({
-            return: {sku: product[0], quantity: [1]},
-        }))
-            .sort((a,b)=>b.quantity-a.quantity).slice(0,10);
+        seller.topProducts = Object.entries(seller.productsSold)
+            .map(([sku, quantity]) => ({
+                sku: sku,
+                quantity: quantity,
+            }))
+            .sort((a, b) => b.quantity - a.quantity)
+            .slice(0, 10);
     });
 
     return sellerStats.map(seller => ({
-        seller_id: seller.id,
+        sellerId: seller.id,
         name: seller.name,
         revenue: seller.revenue.toFixed(2),
         profit: seller.profit.toFixed(2),
-        sales_count: seller.sales_count,
-        top_products: seller.top_products,
+        salesCount: seller.salesCount,
+        topProducts: seller.topProducts,
         bonus: seller.bonus.toFixed(2),
     }));
 }
